@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../../../data/models/conversation.dart';
+import '../../../../data/models/conversation.dart';
+import '../../../../utils/device_utils.dart';
 import 'expanded_player.dart';
 
 class MiniPlayer extends StatefulWidget {
@@ -84,7 +85,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
                         Expanded(
                           child: SingleChildScrollView(
                             controller: scrollController,
-                            child: Container(
+                            child: SizedBox(
                               // Always use full height for smooth transitions
                               height: MediaQuery.of(context).size.height * 0.85,
                               child: Stack(
@@ -124,7 +125,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
     return GestureDetector(
       // Allow all gestures to pass through to the DraggableScrollableSheet
       behavior: HitTestBehavior.translucent,
-      child: Container(
+      child: SizedBox(
         width: double.infinity,
         height: 20, // Keep original height to preserve positioning
         child: Center(
@@ -163,8 +164,15 @@ class _MiniPlayerState extends State<MiniPlayer> {
     final bounceFactor =
         1.0 + (bounceEffect * (1 - (widget.bounceProgress * 2 - 1).abs()));
 
+    // Get device info for responsive sizing
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final deviceInfo = DeviceUtils.getDeviceInfo(screenWidth, screenHeight);
+
     // Calculate animated values with smoother transitions and bounce
-    final baseSvgSize = 45.0 + (330.0 * animationProgress * 0.85);
+    final baseSvgSize =
+        deviceInfo.miniPlayerSvgInitialSize +
+        (330.0 * animationProgress * 0.85);
     final svgSize = baseSvgSize * bounceFactor; // Apply bounce to size
     final leftPosition =
         20.0 -
@@ -218,7 +226,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
         child: GestureDetector(
           // Make the entire minimized content area draggable
           behavior: HitTestBehavior.translucent,
-          child: Container(
+          child: SizedBox(
             // Make this area draggable by allowing gestures to pass through
             height: 60, // Define a clear height for the draggable area
             child: Padding(
@@ -348,25 +356,6 @@ class _MiniPlayerState extends State<MiniPlayer> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildControlButton(IconData icon, VoidCallback onTap) {
-    return Container(
-      width: 46,
-      height: 46,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: IconButton(
-        icon: Icon(icon, color: Colors.white, size: 24),
-        onPressed: onTap,
       ),
     );
   }

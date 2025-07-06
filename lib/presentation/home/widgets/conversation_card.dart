@@ -103,7 +103,7 @@ class ConversationCard extends StatelessWidget {
   }
 
   Widget _buildSubtitle() {
-    return Container(
+    return SizedBox(
       width: subtitleMaxWidth,
       child: Text(
         conversation.subtitle!,

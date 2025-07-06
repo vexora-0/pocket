@@ -113,14 +113,14 @@ class ConversationServiceImpl implements ConversationService {
   Future<void> playConversation(String conversationId) async {
     await Future.delayed(const Duration(milliseconds: 300));
     // Start playback for the given conversation
-    print('Playing conversation: $conversationId');
+    debugPrint('Playing conversation: $conversationId');
   }
 
   @override
   Future<void> pauseConversation() async {
     await Future.delayed(const Duration(milliseconds: 100));
     // Pause current playback
-    print('Pausing conversation');
+    debugPrint('Pausing conversation');
   }
 
   // Helper methods

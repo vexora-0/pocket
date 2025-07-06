@@ -164,12 +164,12 @@ class _DateCalendarState extends State<DateCalendar> {
     return BoxDecoration(
       color: isSelected ? Colors.white : Colors.transparent,
       border:
-          isSelected ? Border.all(color: Colors.grey.withOpacity(0.2)) : null,
+          isSelected ? Border.all(color: Colors.grey.withValues(alpha: 0.2)) : null,
       boxShadow:
           isSelected
               ? [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),

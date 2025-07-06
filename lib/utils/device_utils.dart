@@ -41,6 +41,8 @@ class DeviceInfo {
   // Category tab icon specific parameters
   final double categoryTabIconWidth;
   final double categoryTabIconHeight;
+  // Mini player SVG initial size parameter
+  final double miniPlayerSvgInitialSize;
 
   const DeviceInfo({
     required this.isTablet,
@@ -79,6 +81,7 @@ class DeviceInfo {
     required this.dateCalendarToConversationsSpacing,
     required this.categoryTabIconWidth,
     required this.categoryTabIconHeight,
+    required this.miniPlayerSvgInitialSize,
   });
 }
 
@@ -124,6 +127,7 @@ class DeviceUtils {
         dateCalendarToConversationsSpacing: 24.0,
         categoryTabIconWidth: 46.0,
         categoryTabIconHeight: 33.0,
+        miniPlayerSvgInitialSize: 55.0,
       );
     } else if (screenWidth >= 600) {
       // Small tablets and large phones (landscape)
@@ -164,6 +168,7 @@ class DeviceUtils {
         dateCalendarToConversationsSpacing: 20.0,
         categoryTabIconWidth: 44.0,
         categoryTabIconHeight: 31.0,
+        miniPlayerSvgInitialSize: 52.0,
       );
     } else if (screenWidth >= 430) {
       // iPhone 14 Pro Max and similar large phones (428px logical width)
@@ -204,6 +209,7 @@ class DeviceUtils {
         dateCalendarToConversationsSpacing: 15.0,
         categoryTabIconWidth: 50.0,
         categoryTabIconHeight: 35.0,
+        miniPlayerSvgInitialSize: 50.0,
       );
     } else if (screenWidth >= 410) {
       // iPhone XR and similar (414px logical width)
@@ -244,6 +250,7 @@ class DeviceUtils {
         dateCalendarToConversationsSpacing: 15.0,
         categoryTabIconWidth: 46.0,
         categoryTabIconHeight: 32.0,
+        miniPlayerSvgInitialSize: 48.0,
       );
     } else if (screenWidth >= 390) {
       // iPhone 14, iPhone 13 Pro and similar (390px logical width)
@@ -284,12 +291,13 @@ class DeviceUtils {
         dateCalendarToConversationsSpacing: 15.0,
         categoryTabIconWidth: 42.0,
         categoryTabIconHeight: 29.0,
+        miniPlayerSvgInitialSize: 45.0,
       );
     } else if (screenWidth >= 350) {
       // Regular phones including OnePlus 11R baseline (375px logical width)
       return DeviceInfo(
         isTablet: false,
-        columnWidth: screenWidth * 0.82,
+        columnWidth: screenWidth * 0.83,
         cardHeight: 88,
         listHeight: 340,
         cardsPerColumn: 3,
@@ -324,6 +332,7 @@ class DeviceUtils {
         dateCalendarToConversationsSpacing: 16.0,
         categoryTabIconWidth: 50.0,
         categoryTabIconHeight: 35.0,
+        miniPlayerSvgInitialSize: 45.0,
       );
     } else {
       // Small phones
@@ -364,6 +373,7 @@ class DeviceUtils {
         dateCalendarToConversationsSpacing: 16.0,
         categoryTabIconWidth: 38.0,
         categoryTabIconHeight: 26.0,
+        miniPlayerSvgInitialSize: 42.0,
       );
     }
   }

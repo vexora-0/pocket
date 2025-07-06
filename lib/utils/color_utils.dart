@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class ColorUtils {
   /// Converts a list of Color objects to a list of int values for serialization
   static List<int> colorsToInts(List<Color> colors) {
-    return colors.map((color) => color.value).toList();
+    return colors.map((color) => color.toARGB32()).toList();
   }
 
   /// Converts a list of int values to a list of Color objects

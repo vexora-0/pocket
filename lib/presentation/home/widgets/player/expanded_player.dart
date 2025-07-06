@@ -31,13 +31,12 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
 
   // Static waveform data
   final List<double> _baseWaveformData = [
-  0.2, 0.5, 0.15, 0.45, 0.2, 0.55, 0.2, 0.15, // Left tapering
-  0.7, 0.8, 0.75, 0.9, 0.85, 0.8, 0.9, 0.8,   // First group of tall bars
-  0.15, 0.2, 0.15, 0.2, 0.15, 0.15, 0.2, 0.15, // Center dotted segment
-  0.8, 0.9, 0.85, 0.8, 0.9, 0.8, 0.75, 0.7,   // Second group of tall bars
-  0.2, 0.55, 0.2, 0.45, 0.15, 0.5, 0.2, 0.15, // Right tapering
-];
-
+    0.2, 0.5, 0.15, 0.45, 0.2, 0.55, 0.2, 0.15, // Left tapering
+    0.7, 0.8, 0.75, 0.9, 0.85, 0.8, 0.9, 0.8, // First group of tall bars
+    0.15, 0.2, 0.15, 0.2, 0.15, 0.15, 0.2, 0.15, // Center dotted segment
+    0.8, 0.9, 0.85, 0.8, 0.9, 0.8, 0.75, 0.7, // Second group of tall bars
+    0.2, 0.55, 0.2, 0.45, 0.15, 0.5, 0.2, 0.15, // Right tapering
+  ];
 
   @override
   void initState() {
@@ -424,15 +423,13 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
         // Use only the bars that can fit
         final visibleBarHeights = _currentBarHeights.take(maxBars).toList();
 
-        return Container(
+        return SizedBox(
           height: 120,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children:
-                visibleBarHeights.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final amplitude = entry.value;
+                visibleBarHeights.map((amplitude) {
                   final barHeight = (amplitude * 75).clamp(1.0, 75.0);
 
                   return Container(
@@ -448,25 +445,6 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
           ),
         );
       },
-    );
-  }
-
-  Widget _buildControlButton(IconData icon, VoidCallback onTap) {
-    return Container(
-      width: 46,
-      height: 46,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: IconButton(
-        icon: Icon(icon, color: Colors.white, size: 24),
-        onPressed: onTap,
-      ),
     );
   }
 
