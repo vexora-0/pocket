@@ -17,6 +17,8 @@ abstract class ConversationService {
   Future<void> playConversation(String conversationId);
 
   Future<void> pauseConversation();
+
+  Future<List<Conversation>> getOlderConversations();
 }
 
 class ConversationServiceImpl implements ConversationService {
@@ -121,6 +123,94 @@ class ConversationServiceImpl implements ConversationService {
     await Future.delayed(const Duration(milliseconds: 100));
     // Pause current playback
     debugPrint('Pausing conversation');
+  }
+
+  @override
+  Future<List<Conversation>> getOlderConversations() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    final categories = await getCategories();
+
+    return [
+      Conversation(
+        id: '8',
+        title: 'Team retrospective',
+        subtitle: 'Quarterly team retrospective and planning session',
+        type: categories[0], // Meetings
+        gradientColors: ColorUtils.colorsToInts([
+          const Color(0xFF8B5CF6),
+          const Color(0xFF3B82F6),
+        ]),
+        createdAt: DateTime.now().subtract(const Duration(days: 7)),
+        duration: 35 * 60, // 35 minutes
+        progress: 1.0,
+      ),
+      Conversation(
+        id: '9',
+        title: 'Weekend plans',
+        subtitle: 'Planning weekend activities and events',
+        type: categories[2], // Thoughts
+        gradientColors: ColorUtils.colorsToInts([
+          const Color(0xFFEF4444),
+          const Color(0xFFEC4899),
+        ]),
+        createdAt: DateTime.now().subtract(const Duration(days: 8)),
+        duration: 12 * 60 + 30, // 12:30
+        progress: 0.67,
+      ),
+      Conversation(
+        id: '10',
+        title: 'Client feedback',
+        subtitle: 'Review of client feedback and action items',
+        type: categories[0], // Meetings
+        gradientColors: ColorUtils.colorsToInts([
+          const Color(0xFF10B981),
+          const Color(0xFF3B82F6),
+        ]),
+        createdAt: DateTime.now().subtract(const Duration(days: 10)),
+        duration: 28 * 60, // 28 minutes
+        progress: 1.0,
+      ),
+      Conversation(
+        id: '11',
+        title: 'Book insights',
+        subtitle: 'Thoughts on recent book readings and takeaways',
+        type: categories[2], // Thoughts
+        gradientColors: ColorUtils.colorsToInts([
+          const Color(0xFFF59E0B),
+          const Color(0xFFEF4444),
+        ]),
+        createdAt: DateTime.now().subtract(const Duration(days: 12)),
+        duration: 18 * 60 + 45, // 18:45
+        progress: 0.89,
+      ),
+      Conversation(
+        id: '12',
+        title: 'Family catch-up',
+        subtitle: 'Weekly family call and updates',
+        type: categories[1], // Chats
+        gradientColors: ColorUtils.colorsToInts([
+          const Color(0xFF6366F1),
+          const Color(0xFF8B5CF6),
+        ]),
+        createdAt: DateTime.now().subtract(const Duration(days: 14)),
+        duration: 22 * 60, // 22 minutes
+        progress: 1.0,
+      ),
+      Conversation(
+        id: '13',
+        title: 'Travel planning',
+        subtitle: 'Planning upcoming vacation and destinations',
+        type: categories[2], // Thoughts
+        gradientColors: ColorUtils.colorsToInts([
+          const Color(0xFF059669),
+          const Color(0xFF10B981),
+        ]),
+        createdAt: DateTime.now().subtract(const Duration(days: 16)),
+        duration: 15 * 60 + 20, // 15:20
+        progress: 0.45,
+      ),
+    ];
   }
 
   // Helper methods

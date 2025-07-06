@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/colors.dart';
-import '../../../data/models/conversation.dart';
+import '../../../../core/constants/colors.dart';
+import '../../../../data/models/conversation.dart';
+import 'date_header.dart';
 
 class DateCalendar extends StatefulWidget {
   final List<DateInfo> dates;
@@ -131,6 +132,7 @@ class _DateCalendarState extends State<DateCalendar> {
   Widget _buildDateItem(int index) {
     final dateInfo = widget.dates[index];
     final isSelected = _isSameDate(dateInfo.date, selectedDate.date);
+    final isToday = index == 1; // Hardcoded to 4th position (Friday)
     final baseSize = widget.dateNumberFontSize ?? 15;
     final buttonPadding = baseSize * 0.8; // Proportional padding
     final buttonWidth = baseSize * 3.2; // Proportional width
@@ -151,6 +153,9 @@ class _DateCalendarState extends State<DateCalendar> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Yellow dot indicator for today when not selected
+            if (isToday && !isSelected) _buildTodayIndicator(),
+            if (isToday && !isSelected) SizedBox(height: baseSize * 0.15),
             _buildDateNumber(dateInfo.date.day, isSelected),
             SizedBox(height: baseSize * 0.13), // Proportional spacing
             _buildWeekdayText(dateInfo, isSelected),
@@ -160,11 +165,24 @@ class _DateCalendarState extends State<DateCalendar> {
     );
   }
 
+  Widget _buildTodayIndicator() {
+    return Container(
+      width: 4,
+      height: 4,
+      decoration: const BoxDecoration(
+        color: Color(0xFFEAB308), // Same yellow color as selected day
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+
   BoxDecoration _buildDateItemDecoration(bool isSelected) {
     return BoxDecoration(
       color: isSelected ? Colors.white : Colors.transparent,
       border:
-          isSelected ? Border.all(color: Colors.grey.withValues(alpha: 0.2)) : null,
+          isSelected
+              ? Border.all(color: Colors.grey.withValues(alpha: 0.2))
+              : null,
       boxShadow:
           isSelected
               ? [
@@ -201,90 +219,13 @@ class _DateCalendarState extends State<DateCalendar> {
   }
 
   Widget _buildSelectedDateInfo(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 8, left: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          _buildSelectedDateDisplay(context),
-          _buildConversationCountDisplay(context),
-        ],
-      ),
+    return DateHeader(
+      date: selectedDate.date,
+      conversationCount: widget.conversationCount,
+      horizontalPadding: 8,
+      selectedDateFontSize: widget.selectedDateFontSize ?? 16,
+      conversationCountFontSize: widget.conversationCountFontSize ?? 14,
     );
-  }
-
-  Widget _buildSelectedDateDisplay(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.baseline,
-      textBaseline: TextBaseline.alphabetic,
-      children: [
-        Text(
-          '${selectedDate.fullWeekday},',
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: const Color.fromARGB(255, 0, 0, 0),
-            fontWeight: FontWeight.w800,
-            fontSize: widget.selectedDateFontSize ?? 16,
-          ),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          _formatSelectedDate(),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w500,
-            fontSize:
-                (widget.selectedDateFontSize ?? 16) *
-                0.875, // Proportional to selectedDateFontSize
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildConversationCountDisplay(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          widget.conversationCount.toString(),
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w600,
-            fontSize: widget.conversationCountFontSize ?? 14,
-          ),
-        ),
-        const SizedBox(width: 4),
-        Icon(
-          Icons.chevron_right,
-          size:
-              (widget.conversationCountFontSize ?? 14) *
-              1.14, // Proportional to conversationCountFontSize
-          color: AppColors.textSecondary,
-        ),
-      ],
-    );
-  }
-
-  String _formatSelectedDate() {
-    final months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-
-    final month = months[selectedDate.date.month - 1];
-    final day = selectedDate.date.day;
-    final year = selectedDate.date.year.toString().substring(2);
-
-    return '$month $day \'$year';
   }
 
   bool _isSameDate(DateTime date1, DateTime date2) {

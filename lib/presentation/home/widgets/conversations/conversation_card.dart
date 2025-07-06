@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../../core/constants/colors.dart';
-import '../../../data/models/conversation.dart';
-import '../../../utils/color_utils.dart';
+import '../../../../core/constants/colors.dart';
+import '../../../../data/models/conversation.dart';
+import '../../../../utils/color_utils.dart';
 
 class ConversationCard extends StatelessWidget {
   final Conversation conversation;

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../../data/models/conversation.dart';
-import '../../../../utils/device_utils.dart';
+import '../../../../core/responsive/responsive.dart';
 import 'expanded_player.dart';
 
 class MiniPlayer extends StatefulWidget {
@@ -78,7 +78,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
                 ),
                 child: Stack(
                   children: [
-                    // Main content
+                    // 1. Main content (including waveform and color effects - bottom layer)
                     Column(
                       children: [
                         _buildDragHandle(),
@@ -107,9 +107,9 @@ class _MiniPlayerState extends State<MiniPlayer> {
                         ),
                       ],
                     ),
-                    // Animated Pocket SVG overlay
+                    // 2. Animated Pocket SVG overlay (middle layer - above waveform)
                     _buildAnimatedPocketSVG(),
-                    // Shadow overlay on top of SVG (from screen edge)
+                    // 3. Shadow overlay on top of SVG but under color effects (top layer)
                     _buildVerticalShadowOverlay(),
                   ],
                 ),
@@ -165,9 +165,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
         1.0 + (bounceEffect * (1 - (widget.bounceProgress * 2 - 1).abs()));
 
     // Get device info for responsive sizing
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final deviceInfo = DeviceUtils.getDeviceInfo(screenWidth, screenHeight);
+    final deviceInfo = context.responsive;
 
     // Calculate animated values with smoother transitions and bounce
     final baseSvgSize =
@@ -216,6 +214,9 @@ class _MiniPlayerState extends State<MiniPlayer> {
     );
     final contentOpacity = 1.0 - fadeProgress; // Fade out as player expands
 
+    // Get device info for responsive sizing
+    final deviceInfo = context.responsive;
+
     return Positioned(
       top: 12,
       left: 0,
@@ -228,9 +229,12 @@ class _MiniPlayerState extends State<MiniPlayer> {
           behavior: HitTestBehavior.translucent,
           child: SizedBox(
             // Make this area draggable by allowing gestures to pass through
-            height: 60, // Define a clear height for the draggable area
+            height: deviceInfo.miniPlayerContentHeight, // Use responsive height
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: 20,
+                vertical: deviceInfo.miniPlayerTextVerticalPadding,
+              ),
               child: Row(
                 children: [
                   // Left side - Text and status info (without SVG since it's now animated)
@@ -239,23 +243,23 @@ class _MiniPlayerState extends State<MiniPlayer> {
                       // Allow drag gestures to pass through
                       behavior: HitTestBehavior.translucent,
                       child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 40,
-                        ), // Add left padding to account for animated SVG
+                        padding: EdgeInsets.only(
+                          left: deviceInfo.miniPlayerTextLeftPadding,
+                        ), // Use responsive left padding
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
                               "Sayan's pocket",
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 14,
+                                fontSize: deviceInfo.miniPlayerTitleFontSize,
                                 fontWeight: FontWeight.w600,
                                 fontFamily: 'Inter',
                               ),
                             ),
-                            const SizedBox(height: 2),
+                            SizedBox(height: deviceInfo.miniPlayerTextSpacing),
                             Row(
                               children: [
                                 // Connected status
@@ -263,12 +267,15 @@ class _MiniPlayerState extends State<MiniPlayer> {
                                   'Connected',
                                   style: TextStyle(
                                     color: Colors.green.shade400,
-                                    fontSize: 12,
+                                    fontSize:
+                                        deviceInfo.miniPlayerStatusFontSize,
                                     fontWeight: FontWeight.w500,
                                     fontFamily: 'Inter',
                                   ),
                                 ),
-                                const SizedBox(width: 6),
+                                SizedBox(
+                                  width: deviceInfo.miniPlayerStatusSpacing,
+                                ),
                                 // Dot separator
                                 Container(
                                   width: 3,
@@ -278,7 +285,9 @@ class _MiniPlayerState extends State<MiniPlayer> {
                                     shape: BoxShape.circle,
                                   ),
                                 ),
-                                const SizedBox(width: 6),
+                                SizedBox(
+                                  width: deviceInfo.miniPlayerStatusSpacing,
+                                ),
                                 // Battery percentage
                                 Text(
                                   '75%',
@@ -286,7 +295,8 @@ class _MiniPlayerState extends State<MiniPlayer> {
                                     color: Colors.white.withValues(
                                       alpha: 0.5,
                                     ), // Grayer color as requested
-                                    fontSize: 12,
+                                    fontSize:
+                                        deviceInfo.miniPlayerStatusFontSize,
                                     fontWeight: FontWeight.w500,
                                     fontFamily: 'Inter',
                                   ),
@@ -309,7 +319,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
                       debugPrint('Record button tapped');
                     },
                     behavior: HitTestBehavior.deferToChild,
-                    child: _buildRecordButton(),
+                    child: _buildRecordButton(deviceInfo),
                   ),
                 ],
               ),
@@ -324,37 +334,52 @@ class _MiniPlayerState extends State<MiniPlayer> {
     return SvgPicture.asset('assets/icons/battery.svg', width: 20, height: 20);
   }
 
-  Widget _buildRecordButton() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0.3),
-            blurRadius: 8,
-            spreadRadius: 2,
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Audio SVG icon
-            SvgPicture.asset('assets/icons/audio.svg', width: 16, height: 16),
-            const SizedBox(width: 8),
-            // Record text
-            const Text(
-              'Record',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
+  Widget _buildRecordButton(ResponsiveConfiguration deviceInfo) {
+    // Calculate button opacity - fade out as player expands
+    final buttonFadeProgress = ((_playerPosition - 0.15) / (0.4 - 0.15)).clamp(
+      0.0,
+      1.0,
+    );
+    final buttonOpacity =
+        1.0 - buttonFadeProgress; // Fade out as player expands
+
+    return AnimatedOpacity(
+      opacity: buttonOpacity,
+      duration: const Duration(milliseconds: 100),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.3),
+              blurRadius: 8,
+              spreadRadius: 2,
             ),
           ],
+        ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: deviceInfo.miniPlayerRecordButtonPadding,
+            vertical: 8,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Audio SVG icon
+              SvgPicture.asset('assets/icons/audio.svg', width: 16, height: 16),
+              const SizedBox(width: 8),
+              // Record text
+              Text(
+                'Record',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: deviceInfo.miniPlayerRecordButtonFontSize,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -362,18 +387,18 @@ class _MiniPlayerState extends State<MiniPlayer> {
 
   Widget _buildVerticalShadowOverlay() {
     // Calculate shadow opacity based on drag progress
-    // Shadow starts appearing after minimal expansion and gets stronger as player expands
-    final shadowProgress = ((_playerPosition - 0.2) / (0.85 - 0.2)).clamp(
+    // Shadow only appears when mini player is fully expanded (85%)
+    final shadowProgress = ((_playerPosition - 0.80) / (0.85 - 0.80)).clamp(
       0.0,
       1.0,
     );
-    final shadowOpacity = shadowProgress * 1; // Max 40% opacity for shadow
+    final shadowOpacity = shadowProgress * 1; // Max opacity for shadow
 
     return Positioned(
       left: 0,
       top: 0,
-      bottom: 0,
-      width: 200, // Shadow width from left edge
+      bottom: 115, // Increased vertical length (was 120, now 60)
+      width: 150, // Keep same width to avoid covering left effects
       child: IgnorePointer(
         // Allow gestures to pass through the shadow
         child: AnimatedOpacity(

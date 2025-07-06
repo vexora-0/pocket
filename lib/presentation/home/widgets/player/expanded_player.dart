@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:math' as math;
 import 'dart:async';
+import 'dart:ui';
 
 class ExpandedPlayer extends StatefulWidget {
   final double playerPosition;
@@ -31,11 +32,46 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
 
   // Static waveform data
   final List<double> _baseWaveformData = [
-    0.2, 0.5, 0.15, 0.45, 0.2, 0.55, 0.2, 0.15, // Left tapering
-    0.7, 0.8, 0.75, 0.9, 0.85, 0.8, 0.9, 0.8, // First group of tall bars
-    0.15, 0.2, 0.15, 0.2, 0.15, 0.15, 0.2, 0.15, // Center dotted segment
-    0.8, 0.9, 0.85, 0.8, 0.9, 0.8, 0.75, 0.7, // Second group of tall bars
-    0.2, 0.55, 0.2, 0.45, 0.15, 0.5, 0.2, 0.15, // Right tapering
+    0.0,
+    0.156,
+    0.309,
+    0.454,
+    0.588,
+    0.707,
+    0.809,
+    0.891,
+    0.951,
+    0.988,
+    1.0,
+    0.988,
+    0.951,
+    0.891,
+    0.809,
+    0.707,
+    0.588,
+    0.454,
+    0.309,
+    0.156,
+    0.0,
+    0.156,
+    0.309,
+    0.454,
+    0.588,
+    0.707,
+    0.809,
+    0.891,
+    0.951,
+    0.988,
+    1.0,
+    0.988,
+    0.951,
+    0.891,
+    0.809,
+    0.707,
+    0.588,
+    0.454,
+    0.309,
+    0.156,
   ];
 
   @override
@@ -236,11 +272,76 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        // Expanded content with fade in
+        // 1. Purple and Blue ellipses (bottom layer) - only when expanded
+        if (widget.playerPosition > 0.75) _buildBottomEllipses(),
+        // 2. Brown ellipse (middle layer) - only when expanded
+        if (widget.playerPosition > 0.75) _buildMiddleEllipse(),
+        // 3. Blur overlay (only affects bottom area where ellipses are) - only when expanded
+        if (widget.playerPosition > 0.75) _buildBottomBlurOverlay(),
+        // 4. Expanded content with buttons (top layer)
         _buildFadingExpandedContent(),
-        // Centered waveform overlay
+        // 5. Centered waveform overlay (very top)
         _buildPositionedWaveform(),
       ],
+    );
+  }
+
+  Widget _buildBottomEllipses() {
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          // Purple ellipse - bottom right corner
+          Positioned(
+            bottom: 0,
+            right: -80,
+            child: SvgPicture.asset(
+              'assets/svgs/purpleElipse.svg',
+              width: 300,
+              height: 300,
+            ),
+          ),
+          // Blue ellipse - bottom left corner
+          Positioned(
+            bottom: 0,
+            left: 0,
+            child: SvgPicture.asset(
+              'assets/svgs/blueElipse.svg',
+              width: 400,
+              height: 300,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMiddleEllipse() {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: -40,
+      child: Center(
+        child: SvgPicture.asset(
+          'assets/svgs/brownElipse.svg',
+          width: 350,
+          height: 250,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomBlurOverlay() {
+    return Positioned(
+      left: 0,
+      right: 0,
+      bottom: 0,
+      height: 250, // Only cover the bottom area where ellipses are positioned
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 35, sigmaY: 35),
+          child: Container(color: Colors.transparent),
+        ),
+      ),
     );
   }
 
@@ -256,7 +357,7 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
       child: AnimatedOpacity(
         opacity: contentOpacity,
         duration: const Duration(milliseconds: 100),
-        child: Container(
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
           child: Column(
             children: [
