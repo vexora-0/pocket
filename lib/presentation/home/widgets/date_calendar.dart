@@ -7,6 +7,16 @@ class DateCalendar extends StatefulWidget {
   final DateInfo? initialSelectedDate;
   final Function(DateInfo selectedDate)? onDateSelected;
   final int conversationCount;
+  final double? horizontalPadding;
+  final double? scrollerHeight;
+  final double? headerFontSize;
+  final double? dateNumberFontSize;
+  final double? weekdayFontSize;
+  final double? selectedDateFontSize;
+  final double? conversationCountFontSize;
+  final double? itemSpacing;
+  final double? headerToScrollerSpacing;
+  final double? scrollerToSelectedInfoSpacing;
 
   const DateCalendar({
     super.key,
@@ -14,6 +24,16 @@ class DateCalendar extends StatefulWidget {
     this.initialSelectedDate,
     this.onDateSelected,
     this.conversationCount = 0,
+    this.horizontalPadding,
+    this.scrollerHeight,
+    this.headerFontSize,
+    this.dateNumberFontSize,
+    this.weekdayFontSize,
+    this.selectedDateFontSize,
+    this.conversationCountFontSize,
+    this.itemSpacing,
+    this.headerToScrollerSpacing,
+    this.scrollerToSelectedInfoSpacing,
   });
 
   @override
@@ -71,33 +91,15 @@ class _DateCalendarState extends State<DateCalendar> {
       return const SizedBox.shrink();
     }
 
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive values
-    double horizontalPadding = 13.0;
-    double verticalSpacing = 16.0;
-
-    if (screenWidth >= 900) {
-      horizontalPadding = 32.0;
-      verticalSpacing = 24.0;
-    } else if (screenWidth >= 600) {
-      horizontalPadding = 24.0;
-      verticalSpacing = 20.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      horizontalPadding = (13.0 * scaleFactor).clamp(13.0, 20.0);
-      verticalSpacing = (16.0 * scaleFactor).clamp(16.0, 20.0);
-    }
-
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      padding: EdgeInsets.symmetric(horizontal: widget.horizontalPadding ?? 13),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(context),
-          SizedBox(height: verticalSpacing),
+          SizedBox(height: widget.headerToScrollerSpacing ?? 16),
           _buildDateScroller(),
-          SizedBox(height: verticalSpacing),
+          SizedBox(height: widget.scrollerToSelectedInfoSpacing ?? 16),
           _buildSelectedDateInfo(context),
         ],
       ),
@@ -105,47 +107,19 @@ class _DateCalendarState extends State<DateCalendar> {
   }
 
   Widget _buildHeader(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive font size
-    double fontSize = 20.0; // headlineSmall default
-
-    if (screenWidth >= 900) {
-      fontSize = 28.0;
-    } else if (screenWidth >= 600) {
-      fontSize = 24.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      fontSize = (20.0 * scaleFactor).clamp(20.0, 24.0);
-    }
-
     return Text(
       'Your conversations',
       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
-        fontSize: fontSize,
+        fontSize: widget.headerFontSize,
       ),
     );
   }
 
   Widget _buildDateScroller() {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive height
-    double scrollerHeight = 50.0;
-
-    if (screenWidth >= 900) {
-      scrollerHeight = 66.0;
-    } else if (screenWidth >= 600) {
-      scrollerHeight = 58.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      scrollerHeight = (50.0 * scaleFactor).clamp(50.0, 58.0);
-    }
-
     return SizedBox(
-      height: scrollerHeight,
+      height: widget.scrollerHeight ?? 50,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: widget.dates.length,
@@ -157,48 +131,28 @@ class _DateCalendarState extends State<DateCalendar> {
   Widget _buildDateItem(int index) {
     final dateInfo = widget.dates[index];
     final isSelected = _isSameDate(dateInfo.date, selectedDate.date);
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive values
-    double rightMargin = 16.0;
-    double horizontalPadding = 12.0;
-    double verticalPadding = 4.0;
-    double itemSpacing = 2.0;
-
-    if (screenWidth >= 900) {
-      rightMargin = 22.0;
-      horizontalPadding = 16.0;
-      verticalPadding = 8.0;
-      itemSpacing = 4.0;
-    } else if (screenWidth >= 600) {
-      rightMargin = 20.0;
-      horizontalPadding = 14.0;
-      verticalPadding = 6.0;
-      itemSpacing = 3.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      rightMargin = (16.0 * scaleFactor).clamp(16.0, 20.0);
-      horizontalPadding = (12.0 * scaleFactor).clamp(12.0, 14.0);
-      verticalPadding = (4.0 * scaleFactor).clamp(4.0, 6.0);
-      itemSpacing = (2.0 * scaleFactor).clamp(2.0, 3.0);
-    }
+    final baseSize = widget.dateNumberFontSize ?? 15;
+    final buttonPadding = baseSize * 0.8; // Proportional padding
+    final buttonWidth = baseSize * 3.2; // Proportional width
 
     return GestureDetector(
       onTap: () => _handleDateSelection(dateInfo),
       child: Container(
+        width: buttonWidth,
         margin: EdgeInsets.only(
-          right: index < widget.dates.length - 1 ? rightMargin : 0,
+          right:
+              index < widget.dates.length - 1 ? (widget.itemSpacing ?? 16) : 0,
         ),
         padding: EdgeInsets.symmetric(
-          horizontal: horizontalPadding,
-          vertical: verticalPadding,
+          horizontal: buttonPadding * 0.75,
+          vertical: buttonPadding * 0.5,
         ),
         decoration: _buildDateItemDecoration(isSelected),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             _buildDateNumber(dateInfo.date.day, isSelected),
-            SizedBox(height: itemSpacing),
+            SizedBox(height: baseSize * 0.13), // Proportional spacing
             _buildWeekdayText(dateInfo, isSelected),
           ],
         ),
@@ -225,24 +179,10 @@ class _DateCalendarState extends State<DateCalendar> {
   }
 
   Widget _buildDateNumber(int day, bool isSelected) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive font size
-    double fontSize = 15.0;
-
-    if (screenWidth >= 900) {
-      fontSize = 20.0;
-    } else if (screenWidth >= 600) {
-      fontSize = 18.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      fontSize = (15.0 * scaleFactor).clamp(15.0, 18.0);
-    }
-
     return Text(
       day.toString(),
       style: TextStyle(
-        fontSize: fontSize,
+        fontSize: widget.dateNumberFontSize ?? 15,
         fontWeight: FontWeight.w600,
         color: isSelected ? Colors.black : AppColors.textTertiary,
       ),
@@ -250,24 +190,10 @@ class _DateCalendarState extends State<DateCalendar> {
   }
 
   Widget _buildWeekdayText(DateInfo dateInfo, bool isSelected) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive font size
-    double fontSize = 10.0;
-
-    if (screenWidth >= 900) {
-      fontSize = 14.0;
-    } else if (screenWidth >= 600) {
-      fontSize = 12.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      fontSize = (10.0 * scaleFactor).clamp(10.0, 12.0);
-    }
-
     return Text(
       isSelected ? dateInfo.weekday.toUpperCase() : dateInfo.shortWeekday,
       style: TextStyle(
-        fontSize: fontSize,
+        fontSize: widget.weekdayFontSize ?? 10,
         fontWeight: FontWeight.w500,
         color: isSelected ? const Color(0xFFEAB308) : AppColors.textTertiary,
       ),
@@ -275,35 +201,8 @@ class _DateCalendarState extends State<DateCalendar> {
   }
 
   Widget _buildSelectedDateInfo(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive padding
-    double topPadding = 18.0;
-    double horizontalPadding = 8.0;
-    double bottomPadding = 8.0;
-
-    if (screenWidth >= 900) {
-      topPadding = 28.0;
-      horizontalPadding = 16.0;
-      bottomPadding = 16.0;
-    } else if (screenWidth >= 600) {
-      topPadding = 24.0;
-      horizontalPadding = 12.0;
-      bottomPadding = 12.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      topPadding = (18.0 * scaleFactor).clamp(18.0, 24.0);
-      horizontalPadding = (8.0 * scaleFactor).clamp(8.0, 12.0);
-      bottomPadding = (8.0 * scaleFactor).clamp(8.0, 12.0);
-    }
-
     return Padding(
-      padding: EdgeInsets.only(
-        top: topPadding,
-        right: horizontalPadding,
-        left: horizontalPadding,
-        bottom: bottomPadding,
-      ),
+      padding: const EdgeInsets.only(right: 8, left: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -315,28 +214,6 @@ class _DateCalendarState extends State<DateCalendar> {
   }
 
   Widget _buildSelectedDateDisplay(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive font sizes and spacing
-    double primaryFontSize = 16.0;
-    double secondaryFontSize = 14.0;
-    double spacing = 6.0;
-
-    if (screenWidth >= 900) {
-      primaryFontSize = 20.0;
-      secondaryFontSize = 18.0;
-      spacing = 10.0;
-    } else if (screenWidth >= 600) {
-      primaryFontSize = 18.0;
-      secondaryFontSize = 16.0;
-      spacing = 8.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      primaryFontSize = (16.0 * scaleFactor).clamp(16.0, 18.0);
-      secondaryFontSize = (14.0 * scaleFactor).clamp(14.0, 16.0);
-      spacing = (6.0 * scaleFactor).clamp(6.0, 8.0);
-    }
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.baseline,
       textBaseline: TextBaseline.alphabetic,
@@ -346,16 +223,18 @@ class _DateCalendarState extends State<DateCalendar> {
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: const Color.fromARGB(255, 0, 0, 0),
             fontWeight: FontWeight.w800,
-            fontSize: primaryFontSize,
+            fontSize: widget.selectedDateFontSize ?? 16,
           ),
         ),
-        SizedBox(width: spacing),
+        const SizedBox(width: 6),
         Text(
           _formatSelectedDate(),
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: AppColors.textSecondary,
             fontWeight: FontWeight.w500,
-            fontSize: secondaryFontSize,
+            fontSize:
+                (widget.selectedDateFontSize ?? 16) *
+                0.875, // Proportional to selectedDateFontSize
           ),
         ),
       ],
@@ -363,28 +242,6 @@ class _DateCalendarState extends State<DateCalendar> {
   }
 
   Widget _buildConversationCountDisplay(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive font size and icon size
-    double fontSize = 14.0;
-    double iconSize = 16.0;
-    double spacing = 4.0;
-
-    if (screenWidth >= 900) {
-      fontSize = 18.0;
-      iconSize = 20.0;
-      spacing = 6.0;
-    } else if (screenWidth >= 600) {
-      fontSize = 16.0;
-      iconSize = 18.0;
-      spacing = 5.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      fontSize = (14.0 * scaleFactor).clamp(14.0, 16.0);
-      iconSize = (16.0 * scaleFactor).clamp(16.0, 18.0);
-      spacing = (4.0 * scaleFactor).clamp(4.0, 5.0);
-    }
-
     return Row(
       children: [
         Text(
@@ -392,13 +249,15 @@ class _DateCalendarState extends State<DateCalendar> {
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             color: AppColors.textPrimary,
             fontWeight: FontWeight.w600,
-            fontSize: fontSize,
+            fontSize: widget.conversationCountFontSize ?? 14,
           ),
         ),
-        SizedBox(width: spacing),
+        const SizedBox(width: 4),
         Icon(
           Icons.chevron_right,
-          size: iconSize,
+          size:
+              (widget.conversationCountFontSize ?? 14) *
+              1.14, // Proportional to conversationCountFontSize
           color: AppColors.textSecondary,
         ),
       ],
@@ -488,4 +347,3 @@ class DateCalendarFactory {
     return weekdays[weekday - 1];
   }
 }
-

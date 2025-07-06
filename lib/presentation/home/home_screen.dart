@@ -4,54 +4,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../core/constants/colors.dart';
 import '../../data/models/conversation.dart';
 import '../../data/datasources/mock_data_source.dart';
-import '../../utils/color_utils.dart';
+import '../../utils/device_utils.dart';
 import 'widgets/category_tabs.dart';
 import 'widgets/date_calendar.dart';
 import 'widgets/conversation_card.dart';
 import 'widgets/mini_player.dart';
-
-// DeviceInfo class for responsive configuration
-class DeviceInfo {
-  final bool isTablet;
-  final double columnWidth;
-  final double cardHeight;
-  final double listHeight;
-  final int cardsPerColumn;
-  final int gridColumns;
-  final double cardAspectRatio;
-  final double subtitleMaxWidth;
-  final double horizontalPadding;
-  final double columnSpacing;
-  final double dividerLeftMargin;
-  final double dividerSpacing;
-  final double thumbnailWidth;
-  final double thumbnailHeight;
-  final EdgeInsets cardPadding;
-  final double contentSpacing;
-  final double titleSubtitleSpacing;
-  final double cardVerticalSpacing;
-
-  const DeviceInfo({
-    required this.isTablet,
-    required this.columnWidth,
-    required this.cardHeight,
-    required this.listHeight,
-    required this.cardsPerColumn,
-    required this.gridColumns,
-    required this.cardAspectRatio,
-    required this.subtitleMaxWidth,
-    required this.horizontalPadding,
-    required this.columnSpacing,
-    required this.dividerLeftMargin,
-    required this.dividerSpacing,
-    required this.thumbnailWidth,
-    required this.thumbnailHeight,
-    required this.cardPadding,
-    required this.contentSpacing,
-    required this.titleSubtitleSpacing,
-    required this.cardVerticalSpacing,
-  });
-}
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -157,6 +114,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     MiniPlayerData? miniPlayerData,
   ) {
     final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final deviceInfo = DeviceUtils.getDeviceInfo(screenWidth, screenHeight);
 
     // Apply bounce effect to available height - with null safety
     final bounceValue = _bounceAnimation?.value ?? 0.0;
@@ -193,7 +152,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
               borderRadius: BorderRadius.circular(12),
               child: Column(
                 children: [
-                  // Header - Fixed
+                  // Header - Fixed with top padding
                   SafeArea(bottom: false, child: _buildHeader(context)),
 
                   // Scrollable Content
@@ -201,19 +160,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
+                          SizedBox(
+                            height: deviceInfo.headerToCategoryTabsSpacing,
+                          ),
                           _buildCategoryTabs(categories),
+                          SizedBox(
+                            height: deviceInfo.categoryTabsToDividerSpacing,
+                          ),
                           _buildDivider(),
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: _buildDateCalendar(
-                              dates,
-                              conversations.length,
-                            ),
+                          SizedBox(
+                            height: deviceInfo.dividerToDateCalendarSpacing,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12, bottom: 24),
-                            child: _buildConversationsList(conversations),
+                          _buildDateCalendar(dates, conversations.length),
+                          SizedBox(
+                            height:
+                                deviceInfo.dateCalendarToConversationsSpacing,
                           ),
+                          _buildConversationsList(conversations),
                         ],
                       ),
                     ),
@@ -333,58 +296,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  // Header - Responsive padding based on screen size
+  // Header - Moving content higher by reducing padding
   Widget _buildHeader(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
-
-    // Calculate responsive padding
-    double horizontalPadding = 13.0;
-    double verticalPadding = 8.0;
-
-    if (screenWidth >= 900) {
-      // Large tablets and desktops
-      horizontalPadding = 32.0;
-      verticalPadding = 20.0;
-    } else if (screenWidth >= 600) {
-      // Small tablets and large phones (landscape)
-      horizontalPadding = 24.0;
-      verticalPadding = 16.0;
-    } else if (screenWidth >= 430) {
-      // Large phones
-      final scaleFactor = screenWidth / 393;
-      horizontalPadding = (13.0 * scaleFactor).clamp(13.0, 20.0);
-      verticalPadding = (8.0 * scaleFactor).clamp(8.0, 14.0);
-    }
+    final deviceInfo = DeviceUtils.getDeviceInfo(screenWidth, screenHeight);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
-        horizontalPadding,
-        verticalPadding,
-        horizontalPadding,
-        verticalPadding,
+        deviceInfo.headerPadding,
+        deviceInfo.topSafeAreaPadding +
+            deviceInfo.headerVerticalPadding, // Add top padding
+        deviceInfo.headerPadding,
+        deviceInfo.headerVerticalPadding,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [_buildTopRow(context), _buildGreeting(context)],
+        children: [
+          _buildTopRow(context, deviceInfo),
+          _buildGreeting(context, deviceInfo),
+        ],
       ),
     );
   }
 
-  Widget _buildTopRow(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive font size
-    double fontSize = 24.0;
-    if (screenWidth >= 900) {
-      fontSize = 32.0;
-    } else if (screenWidth >= 600) {
-      fontSize = 28.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      fontSize = (24.0 * scaleFactor).clamp(24.0, 28.0);
-    }
-
+  Widget _buildTopRow(BuildContext context, DeviceInfo deviceInfo) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -393,65 +329,42 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
           style: Theme.of(context).textTheme.headlineLarge?.copyWith(
             fontWeight: FontWeight.w900,
             color: AppColors.textPrimary,
-            fontSize: fontSize,
+            fontSize: deviceInfo.titleFontSize,
           ),
         ),
-        _buildHeaderIcons(),
+        _buildHeaderIcons(deviceInfo),
       ],
     );
   }
 
-  Widget _buildHeaderIcons() {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive spacing
-    double spacing = 8.0;
-    if (screenWidth >= 900) {
-      spacing = 12.0;
-    } else if (screenWidth >= 600) {
-      spacing = 10.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      spacing = (8.0 * scaleFactor).clamp(8.0, 10.0);
-    }
-
+  Widget _buildHeaderIcons(DeviceInfo deviceInfo) {
     return Row(
       children: [
-        _buildIconButton('assets/icons/search.svg', () {}),
-        SizedBox(width: spacing),
-        _buildIconButton('assets/icons/person.svg', () {}),
+        _buildIconButton('assets/icons/search.svg', () {}, deviceInfo),
+        const SizedBox(width: 8),
+        _buildIconButton('assets/icons/person.svg', () {}, deviceInfo),
       ],
     );
   }
 
-  Widget _buildIconButton(String iconPath, VoidCallback onTap) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive icon button size
-    double containerSize = 32.0;
-    double iconSize = 16.0;
-
-    if (screenWidth >= 900) {
-      containerSize = 40.0;
-      iconSize = 20.0;
-    } else if (screenWidth >= 600) {
-      containerSize = 36.0;
-      iconSize = 18.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      containerSize = (32.0 * scaleFactor).clamp(32.0, 36.0);
-      iconSize = (16.0 * scaleFactor).clamp(16.0, 18.0);
-    }
-
+  Widget _buildIconButton(
+    String iconPath,
+    VoidCallback onTap,
+    DeviceInfo deviceInfo,
+  ) {
     return Container(
-      width: containerSize,
-      height: containerSize,
+      width: deviceInfo.iconContainerSize,
+      height: deviceInfo.iconContainerSize,
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 240, 238, 238),
         borderRadius: BorderRadius.circular(100),
       ),
       child: IconButton(
-        icon: SvgPicture.asset(iconPath, width: iconSize, height: iconSize),
+        icon: SvgPicture.asset(
+          iconPath,
+          width: deviceInfo.iconSize,
+          height: deviceInfo.iconSize,
+        ),
         onPressed: onTap,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),
@@ -459,33 +372,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
     );
   }
 
-  Widget _buildGreeting(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive font size and spacing
-    double fontSize = 14.0;
-    double offsetY = -2.0;
-
-    if (screenWidth >= 900) {
-      fontSize = 18.0;
-      offsetY = -4.0;
-    } else if (screenWidth >= 600) {
-      fontSize = 16.0;
-      offsetY = -3.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      fontSize = (14.0 * scaleFactor).clamp(14.0, 16.0);
-      offsetY = (-2.0 * scaleFactor).clamp(-2.0, -3.0);
-    }
-
+  Widget _buildGreeting(BuildContext context, DeviceInfo deviceInfo) {
     return Transform.translate(
-      offset: Offset(0, offsetY),
+      offset: const Offset(0, -2),
       child: Text(
         MockDataSource.getGreetingMessage(),
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
           color: const Color.fromARGB(255, 138, 144, 153),
           fontWeight: FontWeight.w600,
-          fontSize: fontSize,
+          fontSize: deviceInfo.greetingFontSize,
         ),
       ),
     );
@@ -493,52 +388,62 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
 
   // Using existing widgets
   Widget _buildCategoryTabs(List<ConversationType> categories) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 12),
-      child: CategoryTabs(
-        categories: categories,
-        onCategorySelected: (category, index) {
-          _handleCategorySelection(category, index);
-        },
-      ),
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final deviceInfo = DeviceUtils.getDeviceInfo(screenWidth, screenHeight);
+
+    return CategoryTabs(
+      categories: categories,
+      height:
+          deviceInfo.categoryTabHeight +
+          36, // Base height + responsive adjustment
+      horizontalPadding: deviceInfo.headerPadding,
+      itemSpacing: deviceInfo.categoryTabPadding,
+      fontSize: deviceInfo.greetingFontSize,
+      iconWidth: deviceInfo.categoryTabIconWidth,
+      iconHeight: deviceInfo.categoryTabIconHeight,
+      onCategorySelected: (category, index) {
+        _handleCategorySelection(category, index);
+      },
     );
   }
 
   Widget _buildDivider() {
     final screenWidth = MediaQuery.of(context).size.width;
-
-    // Calculate responsive margin
-    double horizontalMargin = 13.0;
-    double verticalMargin = 20.0;
-
-    if (screenWidth >= 900) {
-      horizontalMargin = 32.0;
-      verticalMargin = 32.0;
-    } else if (screenWidth >= 600) {
-      horizontalMargin = 24.0;
-      verticalMargin = 28.0;
-    } else if (screenWidth >= 430) {
-      final scaleFactor = screenWidth / 393;
-      horizontalMargin = (13.0 * scaleFactor).clamp(13.0, 20.0);
-      verticalMargin = (20.0 * scaleFactor).clamp(20.0, 24.0);
-    }
+    final screenHeight = MediaQuery.of(context).size.height;
+    final deviceInfo = DeviceUtils.getDeviceInfo(screenWidth, screenHeight);
 
     return Container(
       height: 1,
-      margin: EdgeInsets.fromLTRB(
-        horizontalMargin,
-        verticalMargin,
-        horizontalMargin,
-        verticalMargin,
-      ),
+      margin: EdgeInsets.symmetric(horizontal: deviceInfo.headerPadding),
       color: const Color(0xFFE5E7EB),
     );
   }
 
   Widget _buildDateCalendar(List<DateInfo> dates, int conversationCount) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final deviceInfo = DeviceUtils.getDeviceInfo(screenWidth, screenHeight);
+
     return DateCalendar(
       dates: dates,
       conversationCount: conversationCount,
+      horizontalPadding: deviceInfo.headerPadding,
+      scrollerHeight: deviceInfo.dateCalendarHeight,
+      headerFontSize: deviceInfo.titleFontSize * 0.75, // Proportional to title
+      dateNumberFontSize:
+          deviceInfo.greetingFontSize * 1.07, // Slightly larger than greeting
+      weekdayFontSize:
+          deviceInfo.greetingFontSize * 0.71, // Smaller than greeting
+      selectedDateFontSize:
+          deviceInfo.greetingFontSize * 1.14, // Larger than greeting
+      conversationCountFontSize: deviceInfo.greetingFontSize,
+      itemSpacing:
+          deviceInfo.categoryTabPadding +
+          4, // Slightly larger than category spacing
+      headerToScrollerSpacing: deviceInfo.dateCalendarHeaderToScrollerSpacing,
+      scrollerToSelectedInfoSpacing:
+          deviceInfo.dateCalendarScrollerToSelectedInfoSpacing,
       onDateSelected: (selectedDate) {
         _handleDateSelection(selectedDate);
       },
@@ -552,7 +457,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
         final screenHeight = MediaQuery.of(context).size.height;
 
         // Determine device type and responsive values
-        final deviceInfo = _getDeviceInfo(screenWidth, screenHeight);
+        final deviceInfo = DeviceUtils.getDeviceInfo(screenWidth, screenHeight);
 
         // For tablets and large screens, use grid layout
         if (deviceInfo.isTablet) {
@@ -679,125 +584,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen>
             }).toList(),
       ),
     );
-  }
-
-  DeviceInfo _getDeviceInfo(double screenWidth, double screenHeight) {
-    // Define breakpoints with better scaling for larger devices
-    if (screenWidth >= 900) {
-      // Large tablets and desktops
-      return DeviceInfo(
-        isTablet: true,
-        columnWidth: screenWidth * 0.45,
-        cardHeight: 110,
-        listHeight: 480,
-        cardsPerColumn: 4,
-        gridColumns: 2,
-        cardAspectRatio: 4.0,
-        subtitleMaxWidth: 220,
-        horizontalPadding: 32.0,
-        columnSpacing: 28.0,
-        dividerLeftMargin: 192,
-        dividerSpacing: 10,
-        thumbnailWidth: 160,
-        thumbnailHeight: 95,
-        cardPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        contentSpacing: 22.0,
-        titleSubtitleSpacing: 10.0,
-        cardVerticalSpacing: 16.0,
-      );
-    } else if (screenWidth >= 600) {
-      // Small tablets and large phones (landscape)
-      return DeviceInfo(
-        isTablet: false,
-        columnWidth: screenWidth * 0.75,
-        cardHeight: 100,
-        listHeight: 420,
-        cardsPerColumn: 4,
-        gridColumns: 1,
-        cardAspectRatio: 3.5,
-        subtitleMaxWidth: 200,
-        horizontalPadding: 24.0,
-        columnSpacing: 24.0,
-        dividerLeftMargin: 172,
-        dividerSpacing: 9,
-        thumbnailWidth: 140,
-        thumbnailHeight: 88,
-        cardPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        contentSpacing: 18.0,
-        titleSubtitleSpacing: 8.0,
-        cardVerticalSpacing: 12.0,
-      );
-    } else if (screenWidth >= 430) {
-      // Large phones (iPhone Pro Max, Samsung S24 Ultra, etc.)
-      final scaleFactor = screenWidth / 393; // 393 is our baseline width
-      return DeviceInfo(
-        isTablet: false,
-        columnWidth: screenWidth * 0.82,
-        cardHeight: (88 * scaleFactor).clamp(88, 100),
-        listHeight: (340 * scaleFactor).clamp(340, 390),
-        cardsPerColumn: 3,
-        gridColumns: 1,
-        cardAspectRatio: 3.0,
-        subtitleMaxWidth: (150 * scaleFactor).clamp(150, 180),
-        horizontalPadding: (16.0 * scaleFactor).clamp(16.0, 22.0),
-        columnSpacing: (18.0 * scaleFactor).clamp(18.0, 22.0),
-        dividerLeftMargin: (152 * scaleFactor).clamp(152, 170),
-        dividerSpacing: (6 * scaleFactor).clamp(6, 8),
-        thumbnailWidth: (120 * scaleFactor).clamp(120, 135),
-        thumbnailHeight: (80 * scaleFactor).clamp(80, 90),
-        cardPadding: EdgeInsets.symmetric(
-          horizontal: (6.0 * scaleFactor).clamp(6.0, 8.0),
-          vertical: (4.0 * scaleFactor).clamp(4.0, 6.0),
-        ),
-        contentSpacing: (14.0 * scaleFactor).clamp(14.0, 16.0),
-        titleSubtitleSpacing: (6.0 * scaleFactor).clamp(6.0, 8.0),
-        cardVerticalSpacing: (8.0 * scaleFactor).clamp(8.0, 10.0),
-      );
-    } else if (screenWidth >= 375) {
-      // Regular phones (baseline - CPH2487 and similar)
-      return DeviceInfo(
-        isTablet: false,
-        columnWidth: screenWidth * 0.82,
-        cardHeight: 88,
-        listHeight: 340,
-        cardsPerColumn: 3,
-        gridColumns: 1,
-        cardAspectRatio: 3.0,
-        subtitleMaxWidth: 150,
-        horizontalPadding: 16.0,
-        columnSpacing: 18.0,
-        dividerLeftMargin: 152,
-        dividerSpacing: 6,
-        thumbnailWidth: 120,
-        thumbnailHeight: 80,
-        cardPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-        contentSpacing: 14.0,
-        titleSubtitleSpacing: 6.0,
-        cardVerticalSpacing: 8.0,
-      );
-    } else {
-      // Small phones
-      return DeviceInfo(
-        isTablet: false,
-        columnWidth: screenWidth * 0.85,
-        cardHeight: 82,
-        listHeight: 320,
-        cardsPerColumn: 3,
-        gridColumns: 1,
-        cardAspectRatio: 2.8,
-        subtitleMaxWidth: 120,
-        horizontalPadding: 14.0,
-        columnSpacing: 16.0,
-        dividerLeftMargin: 140,
-        dividerSpacing: 5,
-        thumbnailWidth: 110,
-        thumbnailHeight: 75,
-        cardPadding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-        contentSpacing: 12.0,
-        titleSubtitleSpacing: 5.0,
-        cardVerticalSpacing: 6.0,
-      );
-    }
   }
 
   // Helper methods
