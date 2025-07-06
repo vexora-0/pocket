@@ -4,9 +4,19 @@ import 'dart:math' as math;
 import 'dart:async';
 import 'dart:ui';
 
+/// The expanded view of the audio player with animated waveform visualization.
+///
+/// This widget displays the full player interface with animated waveform bars,
+/// control buttons, and visual effects. It includes a complex animation sequence
+/// that triggers when the player is expanded above 50% of screen height.
 class ExpandedPlayer extends StatefulWidget {
+  /// The current player position as a fraction of screen height (0.0 to 1.0).
   final double playerPosition;
+
+  /// Callback fired when the play/pause button is tapped.
   final VoidCallback? onPlayPause;
+
+  /// Callback fired when the menu button is tapped.
   final VoidCallback? onMenuTap;
 
   const ExpandedPlayer({
@@ -30,7 +40,6 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
   List<double> _initialBarHeights = [];
   Timer? _continuousAnimationTimer;
 
-  // Static waveform data
   final List<double> _baseWaveformData = [
     0.0,
     0.156,
@@ -79,7 +88,7 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
     super.initState();
 
     _mainAnimationController = AnimationController(
-      duration: const Duration(milliseconds: 3000), // Single 2 second animation
+      duration: const Duration(milliseconds: 3000),
       vsync: this,
     );
 
@@ -97,11 +106,10 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
   void _initializeBarHeights() {
     _initialBarHeights =
         _baseWaveformData.map((amplitude) {
-          // 40% of bars should be dots (very low height)
           if (math.Random().nextDouble() < 0.4) {
-            return 0.05; // Very low height (dots)
+            return 0.05;
           }
-          return amplitude * 0.3; // Other bars are also quite low initially
+          return amplitude * 0.3;
         }).toList();
 
     _currentBarHeights = List.from(_initialBarHeights);
@@ -114,37 +122,24 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
       final progress = _mainAnimation.value;
 
       for (int i = 0; i < _currentBarHeights.length; i++) {
-        // Create smooth wave-like animation with different phases
-        final random = math.Random(i); // Use index as seed for consistency
+        final random = math.Random(i);
 
         if (progress < 0.7) {
-          // Phase 1: Gentle expansion from dots/low to moderate heights (0-70% of animation)
           final expansionProgress = (progress / 0.7).clamp(0.0, 1.0);
-          final targetHeight =
-              0.15 +
-              (random.nextDouble() *
-                  0.35); // 0.15 to 0.5 range (more conservative)
+          final targetHeight = 0.15 + (random.nextDouble() * 0.35);
           _currentBarHeights[i] =
               _initialBarHeights[i] +
               (targetHeight - _initialBarHeights[i]) *
                   Curves.easeInOut.transform(expansionProgress);
         } else if (progress < 0.9) {
-          // Phase 2: Subtle fluctuations (70-90% of animation)
           final fluctuationProgress = ((progress - 0.7) / 0.2).clamp(0.0, 1.0);
-          final baseHeight =
-              0.25 +
-              (random.nextDouble() *
-                  0.25); // 0.25 to 0.5 range (more controlled)
+          final baseHeight = 0.25 + (random.nextDouble() * 0.25);
           final fluctuation =
-              math.sin(fluctuationProgress * math.pi * 2 + i) *
-              0.06; // Reduced intensity
+              math.sin(fluctuationProgress * math.pi * 2 + i) * 0.06;
           _currentBarHeights[i] = (baseHeight + fluctuation).clamp(0.05, 0.6);
         } else {
-          // Phase 3: Gentle settle to similar heights (90-100% of animation)
           final settleProgress = ((progress - 0.9) / 0.1).clamp(0.0, 1.0);
-          final targetHeight =
-              0.3 +
-              (random.nextDouble() * 0.15); // 0.3 to 0.45 range (more similar)
+          final targetHeight = 0.3 + (random.nextDouble() * 0.15);
           final currentHeight = _currentBarHeights[i];
           _currentBarHeights[i] =
               currentHeight +
@@ -159,26 +154,21 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
   void didUpdateWidget(ExpandedPlayer oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Start wave animation when height > 0.5
     if (widget.playerPosition > 0.5 && !_hasTriggeredFullAnimation) {
       _hasTriggeredFullAnimation = true;
       _startAnimationSequence();
     }
 
-    // Reset when minimized
     if (widget.playerPosition < 0.4 && _hasTriggeredFullAnimation) {
       _resetAnimation();
     }
   }
 
   void _startAnimationSequence() async {
-    // Start the main 2 second animation
     await _mainAnimationController.forward();
 
-    // After main animation, start continuous subtle animation for 1 second
     _startContinuousAnimation();
 
-    // After 1 second of continuous animation, fade to low heights
     await Future.delayed(const Duration(milliseconds: 1000));
     _fadeToLowHeightsAnimation();
   }
@@ -199,11 +189,8 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
           final random = math.Random();
           for (int i = 0; i < _currentBarHeights.length; i++) {
             if (random.nextDouble() < 0.2) {
-              // 20% chance to change (less frequent)
-              // Subtle random changes around current height
               final currentHeight = _currentBarHeights[i];
-              final variation =
-                  (random.nextDouble() - 0.5) * 0.15; // ±7.5% variation
+              final variation = (random.nextDouble() - 0.5) * 0.15;
               _currentBarHeights[i] = (currentHeight + variation).clamp(
                 0.05,
                 0.8,
@@ -218,14 +205,11 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
   void _fadeToLowHeightsAnimation() {
     if (!mounted) return;
 
-    // Generate random target heights between 0.1 and 0.3 for each bar
     final targetHeights =
         _currentBarHeights.map((height) {
           final random = math.Random();
-          return 0.1 + (random.nextDouble() * 0.2); // 0.1 to 0.3 range
+          return 0.1 + (random.nextDouble() * 0.2);
         }).toList();
-
-    // Smooth animation to fade all bars to low random heights over 1 second
     final fadeController = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -456,13 +440,13 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
   }
 
   Widget _buildPositionedWaveform() {
-    // Calculate fade opacity for waveform with smooth curve - starts fading in when player height > 0.5
+    /// Calculate waveform fade opacity based on player expansion
+    /// The waveform starts fading in when the player reaches 50% height
+    /// and reaches full opacity at 85% height for smooth visual transition
     final waveformFadeProgress = ((widget.playerPosition - 0.5) / (0.85 - 0.5))
         .clamp(0.0, 1.0);
-    // Apply easing curve for smoother transition
     final waveformOpacity = Curves.easeInOut.transform(waveformFadeProgress);
 
-    // Calculate waveform position using same logic as Pocket SVG
     const waveformHeight = 130.0;
     final topPosition = _calculateWaveformVerticalCenter(waveformHeight);
 
@@ -492,20 +476,22 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
   }
 
   Widget _buildAnimatedWaveform() {
-    // Calculate alpha with smooth transition based on expansion state
+    /// Calculate waveform bar opacity based on player expansion level
+    /// This creates a tiered transparency system for better visual hierarchy:
+    /// - Fully expanded (85%+): Maximum opacity (0.9)
+    /// - Mostly expanded (75-85%): Medium-high opacity (0.5-0.9)
+    /// - Partially expanded (50-75%): Medium opacity (0.25-0.5)
+    /// - Minimally expanded (30-50%): Low opacity (0.15-0.25)
     double alpha;
     if (widget.playerPosition >= 0.85) {
       alpha = 0.9;
     } else if (widget.playerPosition >= 0.75) {
-      // Smooth transition from 0.5 to 0.9 between 0.75 and 0.85
       final progress = (widget.playerPosition - 0.75) / (0.85 - 0.75);
       alpha = 0.5 + (0.4 * progress);
     } else if (widget.playerPosition >= 0.5) {
-      // Smooth transition from 0.25 to 0.5 between 0.5 and 0.75
       final progress = (widget.playerPosition - 0.5) / (0.75 - 0.5);
       alpha = 0.25 + (0.25 * progress);
     } else {
-      // Smooth transition from 0.15 to 0.25 between 0.3 and 0.5
       final progress = ((widget.playerPosition - 0.3) / (0.5 - 0.3)).clamp(
         0.0,
         1.0,
@@ -515,13 +501,15 @@ class _ExpandedPlayerState extends State<ExpandedPlayer>
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate how many bars can fit in the available width
+        /// Calculate responsive bar layout based on available screen width
+        /// Each bar is 6px wide with 6px spacing (3px margin on each side)
+        /// This ensures the waveform adapts to different screen sizes
+        /// by showing only the bars that can fit within the available space
         const barWidth = 6.0;
-        const barSpacing = 6.0; // 3px margin on each side
+        const barSpacing = 6.0;
         final availableWidth = constraints.maxWidth;
         final maxBars = (availableWidth / (barWidth + barSpacing)).floor();
 
-        // Use only the bars that can fit
         final visibleBarHeights = _currentBarHeights.take(maxBars).toList();
 
         return SizedBox(

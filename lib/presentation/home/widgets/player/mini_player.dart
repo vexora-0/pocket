@@ -4,12 +4,26 @@ import '../../../../data/models/conversation.dart';
 import '../../../../core/responsive/responsive.dart';
 import 'expanded_player.dart';
 
+/// A draggable audio player widget that transitions between minimized and expanded states.
+///
+/// This widget provides a bottom sheet-style interface that can be dragged to expand
+/// from a minimized state (15% screen height) to an expanded state (85% screen height).
+/// It includes an animated Pocket SVG that scales and moves during the transition.
 class MiniPlayer extends StatefulWidget {
+  /// The player data to display. If null, the widget will be hidden.
   final MiniPlayerData? playerData;
+
+  /// Callback fired when the play/pause button is tapped.
   final VoidCallback? onPlayPause;
+
+  /// Callback fired when the menu button is tapped.
   final VoidCallback? onMenuTap;
+
+  /// Callback fired when the player position changes during drag.
   final Function(double)? onPositionChanged;
-  final double bounceProgress; // Add bounce progress parameter
+
+  /// Progress value for bounce animation effects on the SVG.
+  final double bounceProgress;
 
   const MiniPlayer({
     super.key,
@@ -17,7 +31,7 @@ class MiniPlayer extends StatefulWidget {
     this.onPlayPause,
     this.onMenuTap,
     this.onPositionChanged,
-    this.bounceProgress = 0.0, // Default value
+    this.bounceProgress = 0.0,
   });
 
   @override
@@ -25,9 +39,9 @@ class MiniPlayer extends StatefulWidget {
 }
 
 class _MiniPlayerState extends State<MiniPlayer> {
-  double _playerPosition = 0.15; // Initial position (15% of screen)
-  bool _isDragHandlePressed = false; // Track drag handle press state
-  bool _isDragging = false; // Track if currently dragging
+  double _playerPosition = 0.15;
+  bool _isDragHandlePressed = false;
+  bool _isDragging = false;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +53,6 @@ class _MiniPlayerState extends State<MiniPlayer> {
       onNotification: (notification) {
         setState(() {
           _playerPosition = notification.extent;
-          // Detect dragging state
           _isDragging = notification.minExtent != notification.maxExtent;
         });
         widget.onPositionChanged?.call(notification.extent);
@@ -64,9 +77,9 @@ class _MiniPlayerState extends State<MiniPlayer> {
           child: DraggableScrollableSheet(
             initialChildSize: 0.15,
             minChildSize: 0.15,
-            maxChildSize: 0.85, // Increased from 0.8 to 0.85
+            maxChildSize: 0.85,
             snap: true,
-            snapSizes: const [0.15, 0.85], // Updated snap size to 0.85
+            snapSizes: const [0.15, 0.85],
             builder: (context, scrollController) {
               return Container(
                 decoration: const BoxDecoration(
@@ -78,7 +91,6 @@ class _MiniPlayerState extends State<MiniPlayer> {
                 ),
                 child: Stack(
                   children: [
-                    // 1. Main content (including waveform and color effects - bottom layer)
                     Column(
                       children: [
                         _buildDragHandle(),
@@ -86,13 +98,10 @@ class _MiniPlayerState extends State<MiniPlayer> {
                           child: SingleChildScrollView(
                             controller: scrollController,
                             child: SizedBox(
-                              // Always use full height for smooth transitions
                               height: MediaQuery.of(context).size.height * 0.85,
                               child: Stack(
                                 children: [
-                                  // Minimized content with fade out
                                   _buildFadingMinimizedContent(),
-                                  // Expanded content with fade in
                                   Positioned.fill(
                                     child: ExpandedPlayer(
                                       playerPosition: _playerPosition,
@@ -107,9 +116,7 @@ class _MiniPlayerState extends State<MiniPlayer> {
                         ),
                       ],
                     ),
-                    // 2. Animated Pocket SVG overlay (middle layer - above waveform)
                     _buildAnimatedPocketSVG(),
-                    // 3. Shadow overlay on top of SVG but under color effects (top layer)
                     _buildVerticalShadowOverlay(),
                   ],
                 ),
@@ -123,11 +130,10 @@ class _MiniPlayerState extends State<MiniPlayer> {
 
   Widget _buildDragHandle() {
     return GestureDetector(
-      // Allow all gestures to pass through to the DraggableScrollableSheet
       behavior: HitTestBehavior.translucent,
       child: SizedBox(
         width: double.infinity,
-        height: 20, // Keep original height to preserve positioning
+        height: 20,
         child: Center(
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
@@ -136,11 +142,8 @@ class _MiniPlayerState extends State<MiniPlayer> {
             decoration: BoxDecoration(
               color:
                   _isDragHandlePressed || _isDragging
-                      ? Colors
-                          .white // White when pressed or dragging
-                      : Colors.white.withValues(
-                        alpha: 0.3,
-                      ), // Default semi-transparent
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -150,40 +153,37 @@ class _MiniPlayerState extends State<MiniPlayer> {
   }
 
   Widget _buildAnimatedPocketSVG() {
-    // More sensitive animation progress calculation - updated for 85% max
-    final rawProgress =
-        (_playerPosition - 0.15) / (0.85 - 0.15); // Updated denominator to 0.85
-    final animationProgress = (rawProgress * 1.3).clamp(
-      0.0,
-      1.0,
-    ); // 30% more sensitive
+    /// Calculate SVG animation progress with enhanced sensitivity
+    /// Maps player position (0.15-0.85) to animation progress (0.0-1.0)
+    /// with 1.3x multiplier for more responsive animation
+    final rawProgress = (_playerPosition - 0.15) / (0.85 - 0.15);
+    final animationProgress = (rawProgress * 1.3).clamp(0.0, 1.0);
 
-    // Apply bounce effect to SVG size - subtle bounce
-    final bounceEffect =
-        widget.bounceProgress * 0.01; // 3% bounce amplitude for SVG
+    /// Apply subtle bounce effect to SVG scaling
+    /// Creates a dynamic size modifier based on bounce progress
+    final bounceEffect = widget.bounceProgress * 0.01;
     final bounceFactor =
         1.0 + (bounceEffect * (1 - (widget.bounceProgress * 2 - 1).abs()));
 
-    // Get device info for responsive sizing
     final deviceInfo = context.responsive;
 
-    // Calculate animated values with smoother transitions and bounce
+    /// Calculate SVG size and position based on animation progress
+    /// Base size grows from initial size to 330px larger during expansion
+    /// with 0.85 multiplier for refined scaling
     final baseSvgSize =
         deviceInfo.miniPlayerSvgInitialSize +
         (330.0 * animationProgress * 0.85);
-    final svgSize = baseSvgSize * bounceFactor; // Apply bounce to size
-    final leftPosition =
-        20.0 -
-        (175.0 *
-            animationProgress *
-            0.9); // Slightly reduced for smoother movement
+    final svgSize = baseSvgSize * bounceFactor;
+
+    /// Calculate horizontal position - SVG moves left as player expands
+    /// with 0.9 multiplier for smoother movement
+    final leftPosition = 20.0 - (175.0 * animationProgress * 0.9);
     final topPosition = _calculateVerticalCenter(svgSize);
 
     return Positioned(
       left: leftPosition,
       top: topPosition,
       child: IgnorePointer(
-        // Allow gestures to pass through the SVG
         child: SvgPicture.asset(
           'assets/svgs/pocket.svg',
           width: svgSize,
@@ -199,20 +199,20 @@ class _MiniPlayerState extends State<MiniPlayer> {
     final dragHandleHeight = 20.0;
     final availableHeight = playerHeight - dragHandleHeight;
 
-    // Center the SVG vertically within the available space, then move it up a bit
-    return dragHandleHeight +
-        (availableHeight - svgSize) / 2 -
-        8.0; // Move up by 8px
+    /// Centers the SVG vertically within available space with slight upward adjustment
+    return dragHandleHeight + (availableHeight - svgSize) / 2 - 8.0;
   }
 
   Widget _buildFadingMinimizedContent() {
-    // Calculate fade opacity based on drag progress
-    // Fade starts immediately when dragging begins and completes around 40% expansion
+    /// Calculate fade progress for minimized content
+    /// Content starts fading when player expands from 15% to 40% of screen height
+    /// This creates a smooth transition where minimized content disappears
+    /// as the player expands, making room for the expanded interface
     final fadeProgress = ((_playerPosition - 0.15) / (0.4 - 0.15)).clamp(
       0.0,
       1.0,
     );
-    final contentOpacity = 1.0 - fadeProgress; // Fade out as player expands
+    final contentOpacity = 1.0 - fadeProgress;
 
     // Get device info for responsive sizing
     final deviceInfo = context.responsive;

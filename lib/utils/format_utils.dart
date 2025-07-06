@@ -1,12 +1,17 @@
+/// Utility class for formatting various data types into user-friendly strings.
 class FormatUtils {
-  // Format duration to MM:SS format
+  /// Formats a [Duration] into MM:SS format.
+  ///
+  /// Example: Duration(minutes: 5, seconds: 23) -> "05:23"
   static String formatDuration(Duration duration) {
     final int minutes = duration.inMinutes;
     final int seconds = duration.inSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  // Format date to readable string
+  /// Formats a [DateTime] into a human-readable relative string.
+  ///
+  /// Returns "Today", "Yesterday", "X days ago", or DD/MM/YYYY format.
   static String formatDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
@@ -22,7 +27,9 @@ class FormatUtils {
     }
   }
 
-  // Format file size
+  /// Formats file size in bytes to human-readable format (B, KB, MB).
+  ///
+  /// Example: 1536 -> "1.5KB"
   static String formatFileSize(int bytes) {
     if (bytes < 1024) {
       return '${bytes}B';
@@ -33,7 +40,9 @@ class FormatUtils {
     }
   }
 
-  // Generate conversation title from timestamp
+  /// Generates a conversation title based on the time of day.
+  ///
+  /// Returns format: "[Morning/Afternoon/Evening] thoughts HH:MM"
   static String generateConversationTitle(DateTime dateTime) {
     final hour = dateTime.hour;
     final minute = dateTime.minute;

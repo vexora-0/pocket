@@ -9,6 +9,14 @@ import 'widgets/category_tabs.dart';
 import 'widgets/conversations/conversation.dart';
 import 'widgets/player/player.dart';
 
+/// The main home screen of the Pocket app.
+///
+/// This screen displays the app's primary interface including:
+/// - App header with title and navigation icons
+/// - Category tabs for filtering conversations
+/// - Date picker calendar
+/// - List of conversations and older conversations
+/// - Integrated audio player at the bottom
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
@@ -65,10 +73,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         borderRadius: BorderRadius.circular(12),
         child: Column(
           children: [
-            // Header - Fixed with top padding
             SafeArea(bottom: false, child: _buildHeader(context)),
-
-            // Scrollable Content
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -99,15 +104,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  // Header - Moving content higher by reducing padding
   Widget _buildHeader(BuildContext context) {
     final deviceInfo = context.responsive;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
         deviceInfo.headerPadding,
-        deviceInfo.topSafeAreaPadding +
-            deviceInfo.headerVerticalPadding, // Add top padding
+        deviceInfo.topSafeAreaPadding + deviceInfo.headerVerticalPadding,
         deviceInfo.headerPadding,
         deviceInfo.headerVerticalPadding,
       ),
@@ -193,15 +196,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  // Using existing widgets
   Widget _buildCategoryTabs(List<ConversationType> categories) {
     final deviceInfo = context.responsive;
 
     return CategoryTabs(
       categories: categories,
-      height:
-          deviceInfo.categoryTabHeight +
-          36, // Base height + responsive adjustment
+      height: deviceInfo.categoryTabHeight + 36,
       horizontalPadding: deviceInfo.headerPadding,
       itemSpacing: deviceInfo.categoryTabPadding,
       fontSize: deviceInfo.greetingFontSize,
@@ -223,8 +223,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  // Helper methods moved to ConversationSection widget
-
   // Event handlers
   void _handleCategorySelection(ConversationType category, int index) {
     debugPrint('Selected category: ${category.title}');
@@ -237,8 +235,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _handleConversationTap(Conversation conversation) {
     debugPrint('Tapped conversation: ${conversation.title}');
   }
-
-  // _buildOlderConversations method moved to ConversationSection widget
 
   void _handleOlderConversationTap() {
     debugPrint('Tapped older conversation');
